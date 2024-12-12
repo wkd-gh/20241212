@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css'  %}">
+</head>
+<body>
+    {% if detail.created_at %}
+        <h1>{{detail.subject}}</h1>
+        <h4>{{detail.content}}</h1>
+    {% endif %}
+    <h5>{{detail.answer_set.count}} 개의 답변이 있습니다</h5>
+    <ul>
+        {% for a in detail.answer_set.all %}
+            <li>{{a.content}}</li>
+        {% endfor %}
+    </ul>
+
+    <form action="{% url 'answer_create' detail.id  %}" method="post">
+        {% csrf_token %}
+        <textarea name="content" id="content" rows="15"></textarea>
+        <input type="submit" value="답변등록">
+    </form>
+</body>
+</html>

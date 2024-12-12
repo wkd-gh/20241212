@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+    <script>
+        $(document).ready(function(){
+            $(".btn-danger").click(function(e){
+                e.preventDefault();
+                if(confirm('정말로 삭제 하겠습니까?')){
+                    location.href = e.delegateTarget.dataset.uri;
+                }
+            })   
+            // 수정버튼
+            let modify_uri = ''
+            $(".btn-warning").click(function(e){
+                e.preventDefault();
+                const content = $(this).siblings(".card-text").text();
+                $("#editinput").val(content);
+                modify_uri = e.currentTarget.dataset.uri
+                $("#editModal").modal("show");
+                // location.href = e.delegateTarget.dataset.uri;               
+            })   
+            // 모달 수정 버튼  수정내용으로 url 호출해서 수정로직을 수행
+            $('#answer_modify').click(function(){
+                let modify_content = $('#editinput').val();
+                // ajax 요청
+                $.ajax({
+                    url:modify_uri,
+                    method: "POST",
+                    data:{
+                        content:modify_content,
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    success:function(data){
+                        location.reload(); //현재페이지 리 로드
+                    },
+                    error: function(){
+                        alert("수정에 실패 했습니다. ");
+                    }
+                });
+                
+            });
+
+        });
+    </script>
+
+    <!-- 게시글 제목과 내용 -->
+    {% if question.created_at %}
+        <h1 class="mb-4">{{ question.subject }}</h1>
+        <p class="lead">{{ question.content }}</p>
+    {% endif %}
+    
+    <!-- 답변 개수 -->
+    <h5>{{ question.answer_set.count }} 개의 답변이 있습니다</h5>
+    
+    <!-- 답변 리스트 -->    
+        {% for a in question.answer_set.all %}
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">                            
+              <p class="card-text">{{a.content}}</p>
+              <a  class="btn btn-warning" data-uri = "{% url 'answer_modify' a.id %}">수정</a>
+              <a data-uri = "{% url 'answer_delete' a.id %}" class="btn btn-danger">삭제</a>
+            </div>
+          </div>
+        {% endfor %}
+    
+
+    <!-- 답변 폼 -->
+    <form action="{% url 'answer_create' question.id %}" method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <textarea name="content" id="content" rows="5" class="form-control" placeholder="답변을 작성해주세요..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">답변등록</button>
+    </form>
+
+
+<!-- Button trigger modal -->
+<!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Launch demo modal
+  </button> -->
+  
+  <!-- Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">댓글 수정</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="editinput">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id = 'answer_modify'>수정</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+    
+
